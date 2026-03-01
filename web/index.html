@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏦 保險客戶管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .tabs {
+            display: flex;
+            background: #f0f0f0;
+            cursor: pointer;
+        }
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: #f0f0f0;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .tab:hover {
+            background: #e0e0e0;
+        }
+        .tab.active {
+            background: white;
+            color: #4facfe;
+            font-weight: bold;
+            border-bottom: 3px solid #4facfe;
+        }
+        .content {
+            padding: 30px;
+            display: none;
+        }
+        .content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.4);
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge-vip { background: #ffd700; color: #333; }
+        .badge-important { background: #ff6b6b; color: white; }
+        .badge-normal { background: #4facfe; color: white; }
+        .badge-potential { background: #95e1d3; color: #333; }
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 15px;
+        }
+        .btn-edit { background: #ffc107; color: #333; }
+        .btn-delete { background: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏦 保險客戶管理系統</h1>
+            <p>Insurance CRM - 智禾特助 🦞</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('customers')">👥 客戶列表</button>
+            <button class="tab" onclick="showTab('add')">➕ 新增客戶</button>
+            <button class="tab" onclick="showTab('renewal')">🔔 續保提醒</button>
+        </div>
+        
+        <!-- 客戶列表 -->
+        <div id="customers" class="content active">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 搜尋客戶姓名或電話..." onkeyup="searchCustomers()">
+            </div>
+            <div id="customerList">
+                <div class="empty-state">
+                    <h3>📭 还没有客户资料</h3>
+                    <p>点击「新增客户」添加第一位客户吧！</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 新增客戶 -->
+        <div id="add" class="content">
+            <div id="addForm">
+                <h2 style="margin-bottom: 20px;">➕ 新增客戶資料</h2>
+                
+                <div class="form-group">
+                    <label>姓名 *</label>
+                    <input type="text" id="customerName" placeholder="请输入客户姓名">
+                </div>
+                
+                <div class="form-group">
+                    <label>称谓</label>
+                    <select id="customerTitle">
+                        <option value="">请选择</option>
+                        <option value="先生">先生</option>
+                        <option value="小姐">小姐</option>
+                        <option value="太太">太太</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>电话 *</label>
+                    <input type="tel" id="customerPhone" placeholder="0912-345-678">
+                </div>
+                
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="customerEmail" placeholder="email@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label>LINE ID</label>
+                    <input type="text" id="customerLine" placeholder="line_id">
+                </div>
+                
+                <div class="form-group">
+                    <label>生日</label>
+                    <input type="date" id="customerBirthday">
+                </div>
+                
+                <div class="form-group">
+                    <label>客户分类</label>
+                    <select id="customerCategory">
+                        <option value="一般">一般客户</option>
+                        <option value="潜力">潜力客户</option>
+                        <option value="重要">重要客户</option>
+                        <option value="VIP">VIP 客户</option>
+                    </select>
+                </div>
+                
+                <hr style="margin: 30px 0;">
+                
+                <h3 style="margin-bottom: 20px;">🚗 保险资料（选填）</h3>
+                
+                <div class="form-group">
+                    <label>车牌号码</label>
+                    <input type="text" id="carPlate" placeholder="ABC-1234">
+                </div>
+                
+                <div class="form-group">
+                    <label>强制险到期日</label>
+                    <input type="date" id="compulsoryExpiry">
+                </div>
+                
+                <div class="form-group">
+                    <label>强制险公司</label>
+                    <input type="text" id="compulsoryCompany" placeholder="富邦产险">
+                </div>
+                
+                <div class="form-group">
+                    <label>第三人责任险</label>
+                    <select id="tpci">
+                        <option value="无">无</option>
+                        <option value="有">有</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea id="customerRemark" rows="3" placeholder="其他备注..."></textarea>
+                </div>
+                
+                <button class="btn" onclick="saveCustomer()">💾 储存客户资料</button>
+            </div>
+        </div>
+        
+        <!-- 续保提醒 -->
+        <div id="renewal" class="content">
+            <h2 style="margin-bottom: 20px;">🔔 续保提醒</h2>
+            <div id="renewalList"></div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化数据
+        let customers = JSON.parse(localStorage.getItem('insurance_customers')) || [];
+        
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            
+            if (tabId === 'customers') renderCustomers();
+            if (tabId === 'renewal') renderRenewal();
+        }
+        
+        function saveCustomer() {
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('customerPhone').value.trim();
+            
+            if (!name || !phone) {
+                alert('请填写姓名和电话！');
+                return;
+            }
+            
+            const customer = {
+                id: 'C' + Date.now(),
+                name: name,
+                title: document.getElementById('customerTitle').value,
+                phone: phone,
+                email: document.getElementById('customerEmail').value,
+                line: document.getElementById('customerLine').value,
+                birthday: document.getElementById('customerBirthday').value,
+                category: document.getElementById('customerCategory').value,
+                carPlate: document.getElementById('carPlate').value,
+                compulsoryExpiry: document.getElementById('compulsoryExpiry').value,
+                compulsoryCompany: document.getElementById('compulsoryCompany').value,
+                tpci: document.getElementById('tpci').value,
+                remark: document.getElementById('customerRemark').value,
+                createdAt: new Date().toLocaleDateString('zh-TW')
+            };
+            
+            customers.push(customer);
+            localStorage.setItem('insurance_customers', JSON.stringify(customers));
+            
+            alert('✅ 客户资料已储存！');
+            clearForm();
+            showTab('customers');
+        }
+        
+        function clearForm() {
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerTitle').value = '';
+            document.getElementById('customerPhone').value = '';
+            document.getElementById('customerEmail').value = '';
+            document.getElementById('customerLine').value = '';
+            document.getElementById('customerBirthday').value = '';
+            document.getElementById('customerCategory').value = '一般';
+            document.getElementById('carPlate').value = '';
+            document.getElementById('compulsoryExpiry').value = '';
+            document.getElementById('compulsoryCompany').value = '';
+            document.getElementById('tpci').value = '无';
+            document.getElementById('customerRemark').value = '';
+        }
+        
+        function renderCustomers() {
+            const list = document.getElementById('customerList');
+            
+            if (customers.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <h3>📭 还没有客户资料</h3>
+                        <p>点击「新增客户」添加第一位客户吧！</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<table><thead><tr><th>编号</th><th>姓名</th><th>电话</th><th>分类</th><th>操作</th></tr></thead><tbody>';
+            
+            customers.forEach(c => {
+                let badgeClass = 'badge-normal';
+                if (c.category === 'VIP') badgeClass = 'badge-vip';
+                else if (c.category === '重要') badgeClass = 'badge-important';
+                else if (c.category === '潜力') badgeClass = 'badge-potential';
+                
+                html += `
+                    <tr>
+                        <td>${c.id}</td>
+                        <td>${c.name}</td>
+                        <td>${c.phone}</td>
+                        <td><span class="badge ${badgeClass}">${c.category}</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn btn-small btn-edit" onclick="viewCustomer('${c.id}')">查看</button>
+                                <button class="btn btn-small btn-delete" onclick="deleteCustomer('${c.id}')">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            list.innerHTML = html;
+        }
+        
+        function searchCustomers() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = customers.filter(c => 
+                c.name.toLowerCase().includes(keyword) || 
+                c.phone.includes(keyword)
+            );
+            
+            const list = document.getElementById('customerList');
+            
+            if (filtered.length === 0) {
+                list.innerHTML = '<div class="empty-state"><h3>🔍 没有找到客户</h3></div>';
+                return;
+            }
+            
+            let html = '<table><thead><tr><th>编号</th><th>姓名</th><th>电话</th><th>分类</th><th>操作</th></tr></thead><tbody>';
+            
+            filtered.forEach(c => {
+                let badgeClass = 'badge-normal';
+                if (c.category === 'VIP') badgeClass = 'badge-vip';
+                else if (c.category === '重要') badgeClass = 'badge-important';
+                else if (c.category === '潜力') badgeClass = 'badge-potential';
+                
+                html += `
+                    <tr>
+                        <td>${c.id}</td>
+                        <td>${c.name}</td>
+                        <td>${c.phone}</td>
+                        <td><span class="badge ${badgeClass}">${c.category}</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn btn-small btn-edit" onclick="viewCustomer('${c.id}')">查看</button>
+                                <button class="btn btn-small btn-delete" onclick="deleteCustomer('${c.id}')">删除</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            list.innerHTML = html;
+        }
+        
+        function viewCustomer(id) {
+            const customer = customers.find(c => c.id === id);
+            if (!customer) return;
+            
+            let info = `📋 客户编号：${customer.id}
+📛 姓名：${customer.name}
+📞 电话：${customer.email}
+📧 Email：${customer.email || '无'}
+📅 生日：${customer.birthday || '无'}
+🏷️ 分类：${customer.category}
+🚗 车牌：${customer.carPlate || '无'}
+📅 强制险到期：${customer.compulsoryExpiry || '无'}
+🏢 强制险公司：${customer.compulsoryCompany || '无'}
+💡 第三人责任险：${customer.tpci}
+📝 备注：${customer.remark || '无'}
+📅 建立日期：${customer.createdAt}`;
+            
+            alert(info);
+        }
+        
+        function deleteCustomer(id) {
+            if (!confirm('确定要删除这位客户吗？')) return;
+            
+            customers = customers.filter(c => c.id !== id);
+            localStorage.setItem('insurance_customers', JSON.stringify(customers));
+            renderCustomers();
+            alert('已删除客户');
+        }
+        
+        function renderRenewal() {
+            const today = new Date();
+            const list = document.getElementById('renewalList');
+            
+            // 45天内即将续保的客户
+            const expiring = customers.filter(c => {
+                if (!c.compulsoryExpiry) return false;
+                const expiryDate = new Date(c.compulsoryExpiry);
+                const daysLeft = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+                return daysLeft >= 0 && daysLeft <= 45;
+            }).sort((a, b) => new Date(a.compulsoryExpiry) - new Date(b.compulsoryExpiry));
+            
+            if (expiring.length === 0) {
+                list.innerHTML = '<div class="alert alert-success">✅ 目前没有即将到期的强制险！</div>';
+                return;
+            }
+            
+            let html = '<div class="alert alert-warning">⚠️ 以下客户的强制险即将到期，请及时联系！</div>';
+            html += '<table><thead><tr><th>姓名</th><th>电话</th><th>车牌</th><th>到期日</th><th>剩余天数</th></tr></thead><tbody>';
+            
+            expiring.forEach(c => {
+                const expiryDate = new Date(c.compulsoryExpiry);
+                const daysLeft = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+                
+                html += `
+                    <tr>
+                        <td>${c.name}</td>
+                        <td>${c.phone}</td>
+                        <td>${c.carPlate || '-'}</td>
+                        <td>${c.compulsoryExpiry}</td>
+                        <td style="color: ${daysLeft <= 7 ? 'red' : 'orange'}; font-weight: bold;">${daysLeft} 天</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            list.innerHTML = html;
+        }
+        
+        // 页面加载时显示客户列表
+        renderCustomers();
+    </script>
+</body>
+</html>
